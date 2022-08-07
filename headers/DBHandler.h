@@ -24,22 +24,32 @@ public:
             open = true;
         }
     };
+
     std::stringstream Insert(const std::string &ProductName, const double &Price, const int &Stock){
-        std::string statement = "INSERT INTO Products (Name, Price, Qty) VALUES ('" + ProductName + "', " + std::to_string(Price) + ", " + std::to_string(Stock) + ");";
+        std::string statement = "INSERT INTO Products (Name, Price, Qty) VALUES (" + sqlquote(ProductName) + ", " + std::to_string(Price) + ", " + std::to_string(Stock) + ");";
         return ExecQuery(statement);
     }
-//    std::stringstream Select(int ID = -1, std::string name = "*", double price = -1, int qty = -1){
-//        std::stringstream log;
-//        if (!open){
-//            log << "Unable to open db.\n";
-//            return log;
-//        }
-//        std::string statement;
-//        if(ID == -1 && name == "*" && price == -1 && qty == -1){
-//            statement = "SELECT * FROM Products;";
-//        }
-//        return log;
-//    }
+
+    std::stringstream Select(int ID){
+        std::string statement = "SELECT * FROM Products WHERE ID = " + std::to_string(ID) + ";";
+        return ExecQuery(statement);
+    }
+
+    std::stringstream Select(const std::string& name){
+        std::string statement = "SELECT * FROM Products WHERE Name = " + sqlquote(name) + ";";
+        return ExecQuery(statement);
+    }
+
+    std::stringstream Select(double Price){
+        std::string statement = "SELECT * FROM Products WHERE Price = " + std::to_string(Price) + ";";
+        return ExecQuery(statement);
+    }
+
+    std::stringstream Select(long Qty){
+        std::string statement = "SELECT * FROM Products WHERE Qty = " + std::to_string(Qty) + ";";
+        return ExecQuery(statement);
+    }
+
     std::stringstream SelectAll(){
         std::string statement = "SELECT * FROM Products;";
         return ExecQuery(statement);
@@ -59,7 +69,7 @@ private:
     const char* filename;
     bool open{};
 
-    std::stringstream ExecQuery(std::string statement){
+    std::stringstream ExecQuery(const std::string& statement){
         std::stringstream log;
         int err{};
         if (!open){
@@ -91,7 +101,9 @@ private:
         sqlite3_close_v2(db);
         return log;
     }
-
+    static std::string sqlquote(const std::string &value){
+        return "'" + value + "'";
+    }
 };
 
 #endif //DATABASE_DBHANDLER_H
