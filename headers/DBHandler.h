@@ -71,11 +71,41 @@ private:
         std::string Name;
         double Price{};
         long Qty{};
+        enum memberType{
+            name = 1,
+            price = 2,
+            qty = 3
+        };
+        bool isUpdated(const int &type = 0) const{
+            switch(type){
+                case 1:
+                    return !(Name == "-");
+                    break;
+                case 2:
+                    return !(std::to_string(Price) == "-");
+                    break;
+                case 3:
+                    return !(std::to_string(Qty) == "-");
+                    break;
+                default:
+                    return !(Name == "-" && std::to_string(Price) == "-" && std::to_string(Qty) == "-");
+            }
+        }
+//        inline bool nameUpdated() const{
+//            return !(Name == "-");
+//        }
+//        inline bool priceUpdated() const{
+//            return !(std::to_string(Price) == "-");
+//        }
+//        inline bool qtyUpdated() const{
+//            return !(std::to_string(Qty) == "-");
+//        }
+
         ~Product() = default;
     };
 
     std::string UpdateInterface(){
-        std::string input{}, statement{};
+        std::string input{};
         Product temp;
         std::cout << "\n\tDo you want to search for the items?\n"
                      "\t\t(Y) Yes\n"
@@ -118,27 +148,29 @@ private:
             if (input == "N" || input == "n")
                 return "-";
             else if (input == "Y" || input == "y"){
-                if (temp.Name == "-" && std::to_string(temp.Price) == "-" && std::to_string(temp.Qty) == "-")
+                if (!temp.isUpdated())
                     return "-";
-                if (temp.Name != "-" && std::to_string(temp.Price) == "-" && std::to_string(temp.Qty) == "-")
-                    statement = "UPDATE Products SET Name = " + sqlquote(temp.Name) + " WHERE ID = " + std::to_string(temp.ID) + ";";
-                else if(temp.Name != "-" && std::to_string(temp.Price) != "-" && std::to_string(temp.Qty) == "-")
-                    statement = "UPDATE Products SET Name = " + sqlquote(temp.Name) + ", Price = " + std::to_string(temp.Price) + " WHERE ID = " + std::to_string(temp.ID) + ";";
-                else if (temp.Name != "-" && std::to_string(temp.Price) != "-" && std::to_string(temp.Qty) != "-")
-                    statement = "UPDATE Products SET Name = " + sqlquote(temp.Name) + ", Price = " + std::to_string(temp.Price) + ", Qty = " + std::to_string(temp.Qty) + " WHERE ID = " + std::to_string(temp.ID) + ";";
-                else if (temp.Name != "-" && std::to_string(temp.Price) == "-" && std::to_string(temp.Qty) != "-")
-                    statement = "UPDATE Products SET Name = " + sqlquote(temp.Name) + ", Qty = " + std::to_string(temp.Qty) + " WHERE ID = " + std::to_string(temp.ID) + ";";
-                else if (temp.Name == "-" && std::to_string(temp.Price) != "-" && std::to_string(temp.Qty) != "-")
-                    statement = "UPDATE Products SET Price = " + std::to_string(temp.Price) + ", Qty = " + std::to_string(temp.Qty) + " WHERE ID = " + std::to_string(temp.ID) + ";";
-                else if (temp.Name == "-" && std::to_string(temp.Price) != "-" && std::to_string(temp.Qty) == "-")
-                    statement = "UPDATE Products SET Price = " + std::to_string(temp.Price) + " WHERE ID = " + std::to_string(temp.ID) + ";";
-                else if (temp.Name == "-" && std::to_string(temp.Price) == "-" && std::to_string(temp.Qty) != "-")
-                    statement = "UPDATE Products SET Qty = " + std::to_string(temp.Qty) + " WHERE ID = " + std::to_string(temp.ID) + ";";
-                else
-                    return "-";
+                std::string query = "UPDATE Products SET ";
+                if(temp.isUpdated(temp.memberType::name))
+                    query += "Name = " + sqlquote(temp.Name);
+                if (temp.isUpdated(temp.memberType::price)){
+                    query += appendComma(query) + "Price = " + std::to_string(temp.Price);
+                }
+                if (temp.isUpdated(temp.memberType::qty)){
+                    query += appendComma(query) + "Qty = " + std::to_string(temp.Qty);
+                }
+                query += " WHERE ID = " + std::to_string(temp.ID) + ";";
+                return query;
             }
         }
-        return statement;
+        return "-";
+    }
+
+    std::string appendComma(std::string str){
+        if(!std::isspace(str[str.length()-1]))
+            return ", ";
+        else
+            return "";
     }
 
     std::stringstream ExecQuery(const std::string& statement){
